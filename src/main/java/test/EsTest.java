@@ -229,6 +229,7 @@ public class EsTest {
 		SearchSourceBuilder searchsourceBuilder = new SearchSourceBuilder();
 		searchsourceBuilder.query(QueryBuilders.matchAllQuery());
 		
+		
 		SearchRequest request = new SearchRequest("first_index");
 		request.source(searchsourceBuilder);
 		
