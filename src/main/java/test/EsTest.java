@@ -32,7 +32,6 @@ import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
 import org.junit.Before;
@@ -262,6 +261,8 @@ public class EsTest {
 		SearchRequest request = new SearchRequest("accesslog");
 		request.source(sourceBuilder);
 		
+//		QueryBuilders.rangeQuery("").gt("").
+		
 		System.out.println(JSONObject.toJSON(client.search(request, RequestOptions.DEFAULT)));
 	}
 	
@@ -316,18 +317,38 @@ public class EsTest {
 	@Test
 	public void rangeSearch() throws IOException {
 		
+		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
+//		searchsourceBuider.query(QueryBuilders.rangeQuery("dateTime").gt("2019-08-12 16:29:14").lt("2019-08-12 16:29:33"));
+		
+		searchsourceBuider.query(QueryBuilders.rangeQuery("face.confidence").gt(97.4f));
+		
+//		searchsourceBuider.query(QueryBuilders.rangeQuery("dateTime").gt(DateHelper.strToDateLong("2019-08-12 16:29:14"))
+//				.lt(DateHelper.strToDateLong("2019-08-12 16:29:33")));
+		
 		
 		CountRequest request = new CountRequest("accesslog");
-		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
-		searchsourceBuider.query(QueryBuilders.rangeQuery("dateTime").from("2019-08-12 16:29:14").to("2019-08-12 16:29:33"));
-		
 		request.source(searchsourceBuider);
 		
 		CountResponse countResponse = client.count(request, RequestOptions.DEFAULT);
 		System.out.println("--------- response----"+countResponse.getCount());
-		
 	}
 	
+	
+	@Test
+	public void rangeSearchDateTime() throws IOException {
+		
+		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
+		searchsourceBuider.query(QueryBuilders.rangeQuery("dateTime").gt("2019-08-12 17:57:27").lt("2019-08-12 17:57:32"));
+		
+//		searchsourceBuider.query(QueryBuilders.rangeQuery("dateTime").gt(DateHelper.strToDateLong("2019-08-12 16:29:14"))
+//				.lt(DateHelper.strToDateLong("2019-08-12 16:29:33")));
+		
+		CountRequest request = new CountRequest("accesslog");
+		request.source(searchsourceBuider);
+		
+		CountResponse countResponse = client.count(request, RequestOptions.DEFAULT);
+		System.out.println("--------- response----"+countResponse.getCount());
+	}
 	
 	
 }
