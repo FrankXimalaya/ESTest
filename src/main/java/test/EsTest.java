@@ -32,6 +32,8 @@ import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.UpdateByQueryRequest;
+import org.elasticsearch.index.reindex.UpdateByQueryRequestBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
 import org.junit.Before;
@@ -175,6 +177,25 @@ public class EsTest {
 		map.put("age", 100000);
 		UpdateRequest request = new UpdateRequest("first_index","6").doc(map);
 		client.update(request, RequestOptions.DEFAULT);
+		
+	}
+	
+
+	/***
+      * 更新某个字段
+	 * @throws IOException 
+	 */
+	@Test
+	public void updateField() throws IOException {
+		
+		UpdateByQueryRequest request = new UpdateByQueryRequest("accesslog");
+		request.setQuery(QueryBuilders.idsQuery().addIds("yy-NiWwB_oPNGbRd_yub"));
+		
+//		
+//		UpdateByQueryRequestBuilder builder = new UpdateByQueryRequestBuilder();
+//		
+////		UpdateRequest request = new UpdateRequest("accesslog","yy-NiWwB_oPNGbRd_yub").doc(map);
+//		client.update(request, RequestOptions.DEFAULT);
 		
 	}
 	
@@ -350,5 +371,50 @@ public class EsTest {
 		System.out.println("--------- response----"+countResponse.getCount());
 	}
 	
+	/**特征精确查找*/
+	@Test
+	public void AccurateSearch() throws IOException {
+		
+		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
+//		searchsourceBuider.query(QueryBuilders.termQuery("face.feature", "HgAHDA36AQAACR7qAf/6/A4DDwoCEPzt/f78B/wCCf378gAACQId+fr0BAf+7QP2AwAM+wQS+e4GCAgGBfsF9vwC7QghCQAi/u8Y9v79HgwN5fAAB/UL/BkHBRYA7g3o5goJDPkQ9iD/AP/6AfsA/PYBEfr8AxDzBQDwCPYA+hv2HPHwC/X1CPfy/gII9RQM8/AB9woNB/32BPsABxQG9u4AEgXrAwgJCAoUCA3+CggUAfD8/PIC+xL27fYPAQwF9+cX/vf8AwYNB/4TBQb2/wwO9hQE8Q0XBPgRABr78wAADBMACf/tCuT7EvcT+g0OBPgABvwI4AAHAPT3APsD7xH+/vH++AP6/Q34/QsABRXy6fcBBeQCBAAHBAYGBPH17wkCDP8G6+YAAP3j+/31AfoHFP3xB/oC9gX6ABDu+vkUBgz0BO3x//z16AsADe4DFiMvEwIF8v8L7fcTAf0PFAH64Q0J/hLt/u8K5wAH+wcADxPy/hLxBwj4+Q4BFvEYkgJ5Q9WXgzs="));
+		
+		searchsourceBuider.query(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery("face.feature", "HgAHDA36AQAACR7qAf/6/A4DDwoCEPzt/f78B/wCCf378gAACQId+fr0BAf+7QP2AwAM+wQS+e4GCAgGBfsF9vwC7QghCQAi/u8Y9v79HgwN5fAAB/UL/BkHBRYA7g3o5goJDPkQ9iD/AP/6AfsA/PYBEfr8AxDzBQDwCPYA+hv2HPHwC/X1CPfy/gII9RQM8/AB9woNB/32BPsABxQG9u4AEgXrAwgJCAoUCA3+CggUAfD8/PIC+xL27fYPAQwF9+cX/vf8AwYNB/4TBQb2/wwO9hQE8Q0XBPgRABr78wAADBMACf/tCuT7EvcT+g0OBPgABvwI4AAHAPT3APsD7xH+/vH++AP6/Q34/QsABRXy6fcBBeQCBAAHBAYGBPH17wkCDP8G6+YAAP3j+/31AfoHFP3xB/oC9gX6ABDu+vkUBgz0BO3x//z16AsADe4DFiMvEwIF8v8L7fcTAf0PFAH64Q0J/hLt/u8K5wAH+wcADxPy/hLxBwj4+Q4BFvEYkgJ5Q9WXgzs=")));
+		
+		CountRequest request = new CountRequest("accesslog");
+		request.source(searchsourceBuider);
+		
+		CountResponse countResponse = client.count(request, RequestOptions.DEFAULT);
+		System.out.println("--------- response----"+countResponse.getCount());
+	}
 	
+	/**时间精确查找*/
+	@Test  
+	public void TimeSearch() throws IOException {
+		
+		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
+		searchsourceBuider.query(QueryBuilders.boolQuery().
+				filter(QueryBuilders.termQuery("dateTime", "2019-08-12 17:48:11")));
+		
+		CountRequest request = new CountRequest("accesslog");
+		request.source(searchsourceBuider);
+		
+		CountResponse countResponse = client.count(request, RequestOptions.DEFAULT);
+		System.out.println("--------- response----"+countResponse.getCount());
+	}
+	
+	
+	/**全文检索
+	 * @throws IOException */
+	@Test
+	public void fullTextQuery() throws IOException {
+		
+		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
+		searchsourceBuider.query(QueryBuilders.matchQuery("personId", "{\"arrrrrreaId\":\"000003\",\"cameraName\":\"10.0.10.203\"}"));
+		
+		CountRequest request = new CountRequest("accesslog");
+		request.source(searchsourceBuider);
+		
+		CountResponse countResponse = client.count(request, RequestOptions.DEFAULT);
+		System.out.println("--------- response----"+countResponse.getCount());
+	}	
 }

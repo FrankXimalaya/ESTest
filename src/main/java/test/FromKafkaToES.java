@@ -14,6 +14,8 @@ import org.elasticsearch.common.xcontent.XContentType;
 
 import com.sn.kafka.IKfkMessageCallback;
 import com.sn.kafka.KfkConsumer;
+import com.sn.structure.FaceStructure;
+import com.sn.utils.JsonHelper;
 
 public class FromKafkaToES {
 	
@@ -36,6 +38,9 @@ class MessageCallback implements IKfkMessageCallback {
 	public void notify(String comsumerName, String key, String message) {
 		logger.info("message-------------------"+message);
 		
+		FaceStructure faceStructure = JsonHelper.fromJsonByT(message,FaceStructure.class);
+		faceStructure.setExt("");
+		
 		IndexRequest request = new IndexRequest("accesslog");
 		request.source(message, XContentType.JSON);
 		try {
@@ -48,6 +53,7 @@ class MessageCallback implements IKfkMessageCallback {
 
 	@Override
 	public void notify(ConsumerRecord<byte[], byte[]> record) {
+		
 		
 		
 	}
