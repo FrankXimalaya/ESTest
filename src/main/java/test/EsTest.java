@@ -22,6 +22,7 @@ import org.elasticsearch.action.get.MultiGetRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -32,8 +33,6 @@ import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.reindex.UpdateByQueryRequest;
-import org.elasticsearch.index.reindex.UpdateByQueryRequestBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
 import org.junit.Before;
@@ -55,6 +54,10 @@ public class EsTest {
 
 	@Before
 	public void initialize() {
+		
+		System.setProperty("http.proxySet", "true"); 
+		System.setProperty("http.proxyHost", "127.0.0.1"); 
+		System.setProperty("http.proxyPort", "8888");
 
 		client = new RestHighLevelClient(RestClient.builder(new HttpHost("10.100.7.111", 9200, "http")));
 	}
@@ -167,7 +170,7 @@ public class EsTest {
 	
 	
 	/***
-      * 更新  
+      * 更新 ,有几个形式，直接传JSON或者传Map,或者写script
 	 * @throws IOException 
 	 */
 	@Test
@@ -186,11 +189,37 @@ public class EsTest {
 	 * @throws IOException 
 	 */
 	@Test
-	public void updateField() throws IOException {
+	public void updateFieldMap() throws IOException {
 		
-		UpdateByQueryRequest request = new UpdateByQueryRequest("accesslog");
-		request.setQuery(QueryBuilders.idsQuery().addIds("yy-NiWwB_oPNGbRd_yub"));
+		UpdateRequest request = new UpdateRequest("accesslog","zy-OiWwB_oPNGbRdACue");
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("face.age", 100);
+		request.doc(map);
+		System.out.println(JSONObject.toJSON(client.update(request, RequestOptions.DEFAULT)));
+//		
+//		UpdateByQueryRequestBuilder builder = new UpdateByQueryRequestBuilder();
+//		
+////		UpdateRequest request = new UpdateRequest("accesslog","yy-NiWwB_oPNGbRd_yub").doc(map);
+//		client.update(request, RequestOptions.DEFAULT);
 		
+	}
+	
+	/***
+     * 更新某个字段通过JSON,通过这种方式进行局部更新
+	 * @throws IOException 
+	 */
+	@Test
+	public void updateFieldJson() throws IOException {
+		
+		UpdateRequest request = new UpdateRequest("accesslog","zy-OiWwB_oPNGbRdACue");
+		
+		JSONObject faceJsonObject = new JSONObject();
+		faceJsonObject.put("feature", "frank");
+		
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("face", faceJsonObject);
+		request.doc(jsonObject,XContentType.JSON);
+		System.out.println(JSONObject.toJSON(client.update(request, RequestOptions.DEFAULT)));
 //		
 //		UpdateByQueryRequestBuilder builder = new UpdateByQueryRequestBuilder();
 //		
@@ -378,7 +407,7 @@ public class EsTest {
 		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
 //		searchsourceBuider.query(QueryBuilders.termQuery("face.feature", "HgAHDA36AQAACR7qAf/6/A4DDwoCEPzt/f78B/wCCf378gAACQId+fr0BAf+7QP2AwAM+wQS+e4GCAgGBfsF9vwC7QghCQAi/u8Y9v79HgwN5fAAB/UL/BkHBRYA7g3o5goJDPkQ9iD/AP/6AfsA/PYBEfr8AxDzBQDwCPYA+hv2HPHwC/X1CPfy/gII9RQM8/AB9woNB/32BPsABxQG9u4AEgXrAwgJCAoUCA3+CggUAfD8/PIC+xL27fYPAQwF9+cX/vf8AwYNB/4TBQb2/wwO9hQE8Q0XBPgRABr78wAADBMACf/tCuT7EvcT+g0OBPgABvwI4AAHAPT3APsD7xH+/vH++AP6/Q34/QsABRXy6fcBBeQCBAAHBAYGBPH17wkCDP8G6+YAAP3j+/31AfoHFP3xB/oC9gX6ABDu+vkUBgz0BO3x//z16AsADe4DFiMvEwIF8v8L7fcTAf0PFAH64Q0J/hLt/u8K5wAH+wcADxPy/hLxBwj4+Q4BFvEYkgJ5Q9WXgzs="));
 		
-		searchsourceBuider.query(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery("face.feature", "HgAHDA36AQAACR7qAf/6/A4DDwoCEPzt/f78B/wCCf378gAACQId+fr0BAf+7QP2AwAM+wQS+e4GCAgGBfsF9vwC7QghCQAi/u8Y9v79HgwN5fAAB/UL/BkHBRYA7g3o5goJDPkQ9iD/AP/6AfsA/PYBEfr8AxDzBQDwCPYA+hv2HPHwC/X1CPfy/gII9RQM8/AB9woNB/32BPsABxQG9u4AEgXrAwgJCAoUCA3+CggUAfD8/PIC+xL27fYPAQwF9+cX/vf8AwYNB/4TBQb2/wwO9hQE8Q0XBPgRABr78wAADBMACf/tCuT7EvcT+g0OBPgABvwI4AAHAPT3APsD7xH+/vH++AP6/Q34/QsABRXy6fcBBeQCBAAHBAYGBPH17wkCDP8G6+YAAP3j+/31AfoHFP3xB/oC9gX6ABDu+vkUBgz0BO3x//z16AsADe4DFiMvEwIF8v8L7fcTAf0PFAH64Q0J/hLt/u8K5wAH+wcADxPy/hLxBwj4+Q4BFvEYkgJ5Q9WXgzs=")));
+		searchsourceBuider.query(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery("face.feature.keyword", "9/4T6QAa+/r2//wA5Pbx/wkAB/D5Cv335vv4EO7/Bgr98v0IBwAD9QEE8Qka8A/+CgoN+vn27wjwAAzx8vYQA/IV8/b6CvH2Bw4fBOn9AgD6Bwv7Ae/38wEF7wIAGwEG/PsDCvf+BwPmA+UICg0AAPD3Bwz27QcJB/cCEBwM+eQK+/gHBeX9AQAd5+0E+QgaA/wA+xUJ//8QA/kH9P0C/xEHGw/yFQMBFA4AAxcB+f8F/yD3CwQIABLx/BYF5xgB/AH5EPvr/f4Q+BEG8wD0E+sF/AL/4/4GAPsT9vkC/QoC9OcB7vn5+AkQEgLw7AUb6hEADQ4OCxAF/wIQGAX/Cvb87v748gT5AwAREggJDvEL/RHz/PkZAgHj/wQACuoL9f75+QwM9wEK+Rru9hEI+wHyA/b1+QjvDfoUA+8R8ekIA/f0BAf4DfUCAAIM8RMF8iT8A/kB6A0E7u8PCgr79uoE+fgM6/gNEAoD+ewR/Qjp8wMN6Oz27wsBAf74FgQTQlp4QwPxgzs=")));
 		
 		CountRequest request = new CountRequest("accesslog");
 		request.source(searchsourceBuider);
@@ -409,12 +438,78 @@ public class EsTest {
 	public void fullTextQuery() throws IOException {
 		
 		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
-		searchsourceBuider.query(QueryBuilders.matchQuery("personId", "{\"arrrrrreaId\":\"000003\",\"cameraName\":\"10.0.10.203\"}"));
+		searchsourceBuider.query(QueryBuilders.matchQuery("message", "Elasticsearch out"));
+		
+		CountRequest request = new CountRequest("twitter");
+		request.source(searchsourceBuider);
+		
+		QueryBuilders.matchPhraseQuery("message", "trying out");
+		
+		CountResponse countResponse = client.count(request, RequestOptions.DEFAULT);
+		System.out.println("--------- response----"+countResponse.getCount());
+	}
+	
+
+	/**词项查找
+	 * @throws IOException */
+	@Test
+	public void multitextQuery() throws IOException {
+		
+		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
+		searchsourceBuider.query(QueryBuilders.matchPhraseQuery("message", "王建"));
+		
+		CountRequest request = new CountRequest("twitter");
+		request.source(searchsourceBuider);
+		
+		CountResponse countResponse = client.count(request, RequestOptions.DEFAULT);
+		System.out.println("--------- response----"+countResponse.getCount());
+	}
+	
+	
+	/**前缀查找
+	 * @throws IOException */
+	@Test
+	public void prefixQuery() throws IOException {
+		
+		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
+		searchsourceBuider.query(QueryBuilders.prefixQuery("message", "el"));
+		
+		CountRequest request = new CountRequest("twitter");
+		request.source(searchsourceBuider);
+		
+		CountResponse countResponse = client.count(request, RequestOptions.DEFAULT);
+		System.out.println("--------- response----"+countResponse.getCount());
+	}
+
+	/**模糊搜索
+	 * @throws IOException */
+	@Test
+	public void fuzzyTextQuery() throws IOException {
+		
+		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
+		searchsourceBuider.query(QueryBuilders.fuzzyQuery("face.feature", "dayacj1fgyfbp4q9pusb"));
+		
+		
+		SearchRequest request = new SearchRequest("accesslog");
+		request.source(searchsourceBuider);
+		
+		SearchResponse searchResponse = client.search(request, RequestOptions.DEFAULT);
+		System.out.println("--------- response----"+JSONObject.toJSONString(searchResponse));
+	}
+	
+	/**通配符
+	 * @throws IOException */
+	@Test
+	public void wildcardQuery() throws IOException {
+		
+		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
+		searchsourceBuider.query(QueryBuilders.wildcardQuery("face.feature", "*CAH6CBIJ+wH8DP8H8RIICyAF*"));
 		
 		CountRequest request = new CountRequest("accesslog");
 		request.source(searchsourceBuider);
 		
 		CountResponse countResponse = client.count(request, RequestOptions.DEFAULT);
 		System.out.println("--------- response----"+countResponse.getCount());
-	}	
+	}
+
 }

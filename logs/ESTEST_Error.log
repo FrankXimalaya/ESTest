@@ -58,3 +58,6 @@
 		at org.elasticsearch.client.RestClient.access$900(RestClient.java:95)
 		at org.elasticsearch.client.RestClient$1.completed(RestClient.java:305)
 		... 16 more
+[ERROR] 2019-08-14 15:18:57 main test.EsTest 456 java.lang.ArithmeticException: / by zero 
+ [ERROR] 2019-08-14 15:21:03 main test.EsTest 456 java.lang.ArithmeticException: / by zero 
+ 
