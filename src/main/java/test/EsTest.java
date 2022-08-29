@@ -581,6 +581,8 @@ public class EsTest {
 	public void statistics() {
 		logger.info("²âÊÔgit Ìí¼Ó");
 
+		logger.info("²âÊÔgit mergeÌí¼Ó");
+
 		SearchRequest searchRequest = new SearchRequest();
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 		
