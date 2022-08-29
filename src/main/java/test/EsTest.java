@@ -611,6 +611,7 @@ public class EsTest {
 		logger.info("B++++1");
 		logger.info("B++++2");
 		logger.info("B++++3");
+		logger.info("≤‚ ‘Merge2--------");
 
 	}
 
