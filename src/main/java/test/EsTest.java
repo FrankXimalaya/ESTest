@@ -579,6 +579,7 @@ public class EsTest {
 	 */
 	@Test
 	public void statistics() {
+		logger.info("≤‚ ‘git ÃÌº”");
 
 		SearchRequest searchRequest = new SearchRequest();
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
