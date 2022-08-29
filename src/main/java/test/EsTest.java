@@ -48,7 +48,7 @@ import com.alibaba.fastjson.JSONObject;
 
 /**
  * 
- * ÒÔÏÂ°æ±¾¶¼ÊÇ»ùÓÚ7.1°æ±¾£¬ÊôÓÚHighLevel
+ * ï¿½ï¿½ï¿½Â°æ±¾ï¿½ï¿½ï¿½Ç»ï¿½ï¿½ï¿½7.1ï¿½æ±¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½HighLevel
  */
 public class EsTest {
 
@@ -67,7 +67,7 @@ public class EsTest {
 	}
 
 	/**
-	 * ÒÔStringµÄ·½Ê½²åÈëÊý¾Ý
+	 * ï¿½ï¿½Stringï¿½Ä·ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 */
 	@Test
 	public void indexString() throws IOException {
@@ -82,7 +82,7 @@ public class EsTest {
 	}
 
 	/**
-	 * ÒÔMapµÄÐÎÊ½²åÈë,Èç¹ûIDÏàÍ¬¾ÍÊÇ¸üÐÂ
+	 * ï¿½ï¿½Mapï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½IDï¿½ï¿½Í¬ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½
 	 */
 	@Test
 	public void indexMap() throws IOException {
@@ -99,7 +99,7 @@ public class EsTest {
 	}
 
 	/**
-	 * Òì²½µÄ·½Ê½½øÐÐ¸üÐÂ
+	 * ï¿½ì²½ï¿½Ä·ï¿½Ê½ï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½
 	 */
 	@Test
 	public void asynchronized() throws IOException, InterruptedException {
@@ -125,7 +125,7 @@ public class EsTest {
 			@Override
 			public void onFailure(Exception e) {
 				logger.error("ERROR", e);
-				System.out.println("ÇëÇóÊ§°Ü");
+				System.out.println("ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½");
 			}
 		};
 		client.indexAsync(indexRequest, RequestOptions.DEFAULT, actionListener);
@@ -133,7 +133,7 @@ public class EsTest {
 	}
 
 	/**
-	 * ²éÑ¯»ñÈ¡
+	 * ï¿½ï¿½Ñ¯ï¿½ï¿½È¡
 	 */
 	@Test
 	public void getRequest() throws IOException {
@@ -145,7 +145,7 @@ public class EsTest {
 	}
 
 	/**
-	 * ÅÐ¶ÏÊÇ·ñ´æÔÚ,Õâ¸öºÍget²î²»¶à£¬Ö»²»¹ý¸üÇá
+	 * ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½getï¿½î²»ï¿½à£¬Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 */
 	@Test
 	public void judgeExist() {
@@ -156,7 +156,7 @@ public class EsTest {
 	}
 
 	/***
-	 * É¾³ýAPI
+	 * É¾ï¿½ï¿½API
 	 * 
 	 * @throws IOException
 	 */
@@ -170,7 +170,7 @@ public class EsTest {
 	}
 
 	/***
-	 * ¸üÐÂ ,ÓÐ¼¸¸öÐÎÊ½£¬Ö±½Ó´«JSON»òÕß´«Map,»òÕßÐ´script
+	 * ï¿½ï¿½ï¿½ï¿½ ,ï¿½Ð¼ï¿½ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½Ö±ï¿½Ó´ï¿½JSONï¿½ï¿½ï¿½ß´ï¿½Map,ï¿½ï¿½ï¿½ï¿½Ð´script
 	 * 
 	 * @throws IOException
 	 */
@@ -185,7 +185,7 @@ public class EsTest {
 	}
 
 	/***
-	 * ¸üÐÂÄ³¸ö×Ö¶Î
+	 * ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½ï¿½Ö¶ï¿½
 	 * 
 	 * @throws IOException
 	 */
@@ -206,7 +206,7 @@ public class EsTest {
 	}
 
 	/***
-	 * ¸üÐÂÄ³¸ö×Ö¶ÎÍ¨¹ýJSON,Í¨¹ýÕâÖÖ·½Ê½½øÐÐ¾Ö²¿¸üÐÂ
+	 * ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½ï¿½Ö¶ï¿½Í¨ï¿½ï¿½JSON,Í¨ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½Ê½ï¿½ï¿½ï¿½Ð¾Ö²ï¿½ï¿½ï¿½ï¿½ï¿½
 	 * 
 	 * @throws IOException
 	 */
@@ -240,7 +240,7 @@ public class EsTest {
 
 		BulkResponse bulkResponse = client.bulk(request, RequestOptions.DEFAULT);
 
-		// Õâ¸öµØ·½·â×°Í¦Å£±ÆµÄ£¬ÊµÏÖÁËiteratable½Ó¿Ú£¬¾ÍÖ±½Ó¿ÉÒÔÔÚforÑ­»·Àï
+		// ï¿½ï¿½ï¿½ï¿½Ø·ï¿½ï¿½ï¿½×°Í¦Å£ï¿½ÆµÄ£ï¿½Êµï¿½ï¿½ï¿½ï¿½iteratableï¿½Ó¿Ú£ï¿½ï¿½ï¿½Ö±ï¿½Ó¿ï¿½ï¿½ï¿½ï¿½ï¿½forÑ­ï¿½ï¿½ï¿½ï¿½
 		for (BulkItemResponse bulkItemResponse : bulkResponse) {
 			DocWriteResponse itemResponse = bulkItemResponse.getResponse();
 
@@ -391,7 +391,7 @@ public class EsTest {
 		System.out.println("--------- response----" + countResponse.getCount());
 	}
 
-	/** ÌØÕ÷¾«È·²éÕÒ */
+	/** ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½ï¿½ï¿½ */
 	@Test
 	public void AccurateSearch() throws IOException {
 
@@ -408,7 +408,7 @@ public class EsTest {
 		System.out.println("--------- response----" + countResponse.getCount());
 	}
 
-	/** Ê±¼ä¾«È·²éÕÒ */
+	/** Ê±ï¿½ä¾«È·ï¿½ï¿½ï¿½ï¿½ */
 	@Test
 	public void TimeSearch() throws IOException {
 
@@ -424,7 +424,7 @@ public class EsTest {
 	}
 
 	/**
-	 * È«ÎÄ¼ìË÷
+	 * È«ï¿½Ä¼ï¿½ï¿½ï¿½
 	 * 
 	 * @throws IOException
 	 */
@@ -444,7 +444,7 @@ public class EsTest {
 	}
 
 	/**
-	 * ´ÊÏî²éÕÒ
+	 * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 * 
 	 * @throws IOException
 	 */
@@ -452,7 +452,7 @@ public class EsTest {
 	public void multitextQuery() throws IOException {
 
 		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
-		searchsourceBuider.query(QueryBuilders.matchPhraseQuery("message", "Íõ½¨"));
+		searchsourceBuider.query(QueryBuilders.matchPhraseQuery("message", "ï¿½ï¿½ï¿½ï¿½"));
 
 		CountRequest request = new CountRequest("twitter");
 		request.source(searchsourceBuider);
@@ -462,7 +462,7 @@ public class EsTest {
 	}
 
 	/**
-	 * Ç°×º²éÕÒ
+	 * Ç°×ºï¿½ï¿½ï¿½ï¿½
 	 * 
 	 * @throws IOException
 	 */
@@ -480,7 +480,7 @@ public class EsTest {
 	}
 
 	/**
-	 * Ä£ºýËÑË÷
+	 * Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 * 
 	 * @throws IOException
 	 */
@@ -498,7 +498,7 @@ public class EsTest {
 	}
 
 	/**
-	 * Í¨Åä·û
+	 * Í¨ï¿½ï¿½ï¿½
 	 * 
 	 * @throws IOException
 	 */
@@ -516,7 +516,7 @@ public class EsTest {
 	}
 
 	/**
-	 * ×éºÏËÑË÷£¬½á¹¹»¯ËÑË÷ºÍÈ«ÎÄ¼ìË÷ÔÚÒ»¸öÌõ¼þÖÐ
+	 * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á¹¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È«ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 * 
 	 * @throws IOException
 	 */
@@ -524,7 +524,7 @@ public class EsTest {
 	public void comboundSearch() throws IOException {
 
 		SearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();
-		searchsourceBuider.query(QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("message", "Àî"))
+		searchsourceBuider.query(QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("message", "ï¿½ï¿½"))
 				.must(QueryBuilders.termQuery("age", 18)));
 
 		CountRequest request = new CountRequest("twitter");
@@ -536,7 +536,7 @@ public class EsTest {
 	}
 
 	/**
-	 * ¼òµ¥¾ÛºÏ,Å®ÐÔµÄÆ½¾ùÄêÁä
+	 * ï¿½òµ¥¾Ûºï¿½,Å®ï¿½Ôµï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 * 
 	 * @throws IOException
 	 */
@@ -547,11 +547,11 @@ public class EsTest {
 
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
-		// È¡Ãû×Ö£¬ÒÔ¼°¶¨ÒåÄÄ¸ö×Ö¶Î
-		TermsAggregationBuilder aggregation = AggregationBuilders.terms("by_sex").field("sex"); // textÀàÐÍ²»ÄÜÓÃÓÚË÷Òý»òÅÅÐò£¬±ØÐë×ª³ÉkeywordÀàÐÍ
+		// È¡ï¿½ï¿½ï¿½Ö£ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½Ö¶ï¿½
+		TermsAggregationBuilder aggregation = AggregationBuilders.terms("by_sex").field("sex"); // textï¿½ï¿½ï¿½Í²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ò£¬±ï¿½ï¿½ï¿½×ªï¿½ï¿½keywordï¿½ï¿½ï¿½ï¿½
 
-		// ÉèÖÃÁËÒ»¸öÇ¶Ì×²éÑ¯£¬Ó¦¸ÃÊÇÏÈ¸ù¾ÝÐÔ±ð½øÐÐ·ÖÍ°£¬ÔÚÐÔ±ð·ÖÍ°µÄ»ù´¡ÉÏÔÙ½øÐÐÄêÁäµÄ¾ÛºÏ
-		aggregation.subAggregation(AggregationBuilders.avg("avg_age").field("age")); // avg_age Îª×Ó¾ÛºÏÃû³Æ£¬Ãû³Æ¿ÉËæÒâ
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ç¶ï¿½×²ï¿½Ñ¯ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½È¸ï¿½ï¿½ï¿½ï¿½Ô±ï¿½ï¿½ï¿½Ð·ï¿½Í°ï¿½ï¿½ï¿½ï¿½ï¿½Ô±ï¿½ï¿½Í°ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¾Ûºï¿½
+		aggregation.subAggregation(AggregationBuilders.avg("avg_age").field("age")); // avg_age Îªï¿½Ó¾Ûºï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½ï¿½ï¿½
 
 		searchSourceBuilder.aggregation(aggregation);
 		searchRequest.source(searchSourceBuilder);
@@ -571,24 +571,23 @@ public class EsTest {
 
 		double avg = averageAge.getValue();
 
-		System.out.println("Å®ÐÔÆ½¾ùÄêÁä£º" + avg);
+		System.out.println("Å®ï¿½ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ä£º" + avg);
 	}
 
 	/**
-	 * Í³¼Æ×î´óÖµ¡¢×îÐ¡ÖµµÈ
+	 * Í³ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½Ð¡Öµï¿½ï¿½
 	 */
 	@Test
 	public void statistics() {
-		logger.info("²âÊÔgit Ìí¼Ó");
 
 		logger.info("²âÊÔgit mergeÌí¼Ó");
 
 		SearchRequest searchRequest = new SearchRequest();
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 		
-		TermsAggregationBuilder aggregation = AggregationBuilders.terms("by_sex").field("sex"); // by_sexÎª¾ÛºÏÃû³Æ£¬Ãû³Æ¿ÉËæÒâ
+		TermsAggregationBuilder aggregation = AggregationBuilders.terms("by_sex").field("sex"); // by_sexÎªï¿½Ûºï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½ï¿½ï¿½
 		
-		aggregation.subAggregation(AggregationBuilders.stats("stat_age").field("age")); // avg_age Îª×Ó¾ÛºÏÃû³Æ£¬Ãû³Æ¿ÉËæÒâ
+		aggregation.subAggregation(AggregationBuilders.stats("stat_age").field("age")); // avg_age Îªï¿½Ó¾Ûºï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½ï¿½ï¿½
 		
 		searchSourceBuilder.aggregation(aggregation);
 		searchRequest.source(searchSourceBuilder);
@@ -604,15 +603,12 @@ public class EsTest {
 		List<? extends Terms.Bucket> buckets = bySexAggregation.getBuckets();
 		for (Terms.Bucket bucket : buckets) {
 			Stats statAge = bucket.getAggregations().get("stat_age");
-			System.out.println(bucket.getKey()); // »ñÈ¡·Ö×éÃû³Æ
-			System.out.println("Æ½¾ùÖµ£º" + statAge.getAvg());
-			System.out.println("×ÜÊý£º" + statAge.getSum());
-			System.out.println("×î´óÖµ£º" + statAge.getMaxAsString());
-			System.out.println("×îÐ¡Öµ£º" + statAge.getMin());
+			System.out.println(bucket.getKey()); // ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			System.out.println("Æ½ï¿½ï¿½Öµï¿½ï¿½" + statAge.getAvg());
+			System.out.println("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" + statAge.getSum());
+			System.out.println("ï¿½ï¿½ï¿½Öµï¿½ï¿½" + statAge.getMaxAsString());
+			System.out.println("ï¿½ï¿½Ð¡Öµï¿½ï¿½" + statAge.getMin());
 		}
-		logger.info("B++++1");
-		logger.info("B++++2");
-		logger.info("B++++3");
 
 	}
 
