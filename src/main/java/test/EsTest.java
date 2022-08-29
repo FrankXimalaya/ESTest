@@ -608,6 +608,7 @@ public class EsTest {
 			System.out.println("×îÐ¡Öµ£º" + statAge.getMin());
 		}
 		logger.info("B++++1");
+		logger.info("B++++2");
 
 	}
 
