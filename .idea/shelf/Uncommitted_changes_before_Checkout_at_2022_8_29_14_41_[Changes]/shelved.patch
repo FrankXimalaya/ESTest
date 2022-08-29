@@ -1,0 +1,170 @@
+Index: src/main/java/test/EsTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package test;\r\n\r\nimport java.io.IOException;\r\nimport java.util.Date;\r\nimport java.util.HashMap;\r\nimport java.util.List;\r\nimport java.util.Map;\r\nimport java.util.concurrent.TimeUnit;\r\n\r\nimport org.apache.http.HttpHost;\r\nimport org.apache.log4j.Logger;\r\nimport org.elasticsearch.action.ActionListener;\r\nimport org.elasticsearch.action.DocWriteResponse;\r\nimport org.elasticsearch.action.bulk.BulkItemResponse;\r\nimport org.elasticsearch.action.bulk.BulkRequest;\r\nimport org.elasticsearch.action.bulk.BulkResponse;\r\nimport org.elasticsearch.action.delete.DeleteRequest;\r\nimport org.elasticsearch.action.delete.DeleteResponse;\r\nimport org.elasticsearch.action.get.GetRequest;\r\nimport org.elasticsearch.action.get.GetResponse;\r\nimport org.elasticsearch.action.get.MultiGetRequest;\r\nimport org.elasticsearch.action.index.IndexRequest;\r\nimport org.elasticsearch.action.index.IndexResponse;\r\nimport org.elasticsearch.action.search.SearchRequest;\r\nimport org.elasticsearch.action.search.SearchResponse;\r\nimport org.elasticsearch.action.update.UpdateRequest;\r\nimport org.elasticsearch.action.update.UpdateResponse;\r\nimport org.elasticsearch.client.RequestOptions;\r\nimport org.elasticsearch.client.RestClient;\r\nimport org.elasticsearch.client.RestHighLevelClient;\r\nimport org.elasticsearch.client.core.CountRequest;\r\nimport org.elasticsearch.client.core.CountResponse;\r\nimport org.elasticsearch.common.unit.TimeValue;\r\nimport org.elasticsearch.common.xcontent.XContentType;\r\nimport org.elasticsearch.index.query.QueryBuilders;\r\nimport org.elasticsearch.search.aggregations.AggregationBuilders;\r\nimport org.elasticsearch.search.aggregations.Aggregations;\r\nimport org.elasticsearch.search.aggregations.bucket.terms.Terms;\r\nimport org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;\r\nimport org.elasticsearch.search.aggregations.metrics.Avg;\r\nimport org.elasticsearch.search.aggregations.metrics.Stats;\r\nimport org.elasticsearch.search.builder.SearchSourceBuilder;\r\nimport org.elasticsearch.search.fetch.subphase.FetchSourceContext;\r\nimport org.junit.Before;\r\nimport org.junit.Test;\r\n\r\nimport com.alibaba.fastjson.JSONObject;\r\n\r\n/**\r\n * \r\n * 以下版本都是基于7.1版本，属于HighLevel\r\n */\r\npublic class EsTest {\r\n\r\n\tprivate static RestHighLevelClient client;\r\n\r\n\tprivate static final Logger logger = Logger.getLogger(EsTest.class);\r\n\r\n\t@Before\r\n\tpublic void initialize() {\r\n\r\n\t\tSystem.setProperty(\"http.proxySet\", \"true\");\r\n\t\tSystem.setProperty(\"http.proxyHost\", \"127.0.0.1\");\r\n\t\tSystem.setProperty(\"http.proxyPort\", \"8888\");\r\n\r\n\t\tclient = new RestHighLevelClient(RestClient.builder(new HttpHost(\"10.100.7.111\", 9200, \"http\")));\r\n\t}\r\n\r\n\t/**\r\n\t * 以String的方式插入数据\r\n\t */\r\n\t@Test\r\n\tpublic void indexString() throws IOException {\r\n\t\tIndexRequest request = new IndexRequest(\"first_index\");\r\n\t\trequest.id(\"1\");\r\n\r\n\t\tString jsonString = \"{\" + \"\\\"user\\\":\\\"frank\\\",\" + \"\\\"postDate\\\":\\\"2018-08-08\\\",\"\r\n\t\t\t\t+ \"\\\"message\\\":\\\"trying out Elasticsearch\\\"\" + \"}\";\r\n\t\trequest.source(jsonString, XContentType.JSON);\r\n\t\tIndexResponse indexResponse = client.index(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(JSONObject.toJSON(indexResponse));\r\n\t}\r\n\r\n\t/**\r\n\t * 以Map的形式插入,如果ID相同就是更新\r\n\t */\r\n\t@Test\r\n\tpublic void indexMap() throws IOException {\r\n\r\n\t\tMap<String, Object> jsonMap = new HashMap<>();\r\n\t\tjsonMap.put(\"user\", \"kimchy\");\r\n\t\tjsonMap.put(\"postDate\", new Date());\r\n\t\tjsonMap.put(\"message\", \"trying forth Elasticsearch\");\r\n\t\tIndexRequest indexRequest = new IndexRequest(\"first_index\").id(\"eagles\").source(jsonMap).setIfSeqNo(5)\r\n\t\t\t\t.setIfPrimaryTerm(1);\r\n\r\n\t\tIndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(JSONObject.toJSON(indexResponse));\r\n\t}\r\n\r\n\t/**\r\n\t * 异步的方式进行更新\r\n\t */\r\n\t@Test\r\n\tpublic void asynchronized() throws IOException, InterruptedException {\r\n\r\n\t\tMap<String, Object> jsonMap = new HashMap<>();\r\n\t\tjsonMap.put(\"user\", \"eagles\");\r\n\t\tjsonMap.put(\"postDate\", new Date());\r\n\t\tjsonMap.put(\"message\", \"trying sixth Elasticsearch\");\r\n\t\tIndexRequest indexRequest = new IndexRequest(\"first_index\").id(\"3\").source(jsonMap).setIfSeqNo(5)\r\n\t\t\t\t.setIfPrimaryTerm(1);\r\n\r\n\t\tActionListener<IndexResponse> actionListener = new ActionListener<IndexResponse>() {\r\n\t\t\t@Override\r\n\t\t\tpublic void onResponse(IndexResponse indexResponse) {\r\n\t\t\t\tSystem.out.println(JSONObject.toJSON(indexResponse));\r\n\t\t\t\ttry {\r\n\t\t\t\t\tclient.close();\r\n\t\t\t\t} catch (IOException e) {\r\n\t\t\t\t\te.printStackTrace();\r\n\t\t\t\t}\r\n\t\t\t}\r\n\r\n\t\t\t@Override\r\n\t\t\tpublic void onFailure(Exception e) {\r\n\t\t\t\tlogger.error(\"ERROR\", e);\r\n\t\t\t\tSystem.out.println(\"请求失败\");\r\n\t\t\t}\r\n\t\t};\r\n\t\tclient.indexAsync(indexRequest, RequestOptions.DEFAULT, actionListener);\r\n\t\tThread.sleep(10000);\r\n\t}\r\n\r\n\t/**\r\n\t * 查询获取\r\n\t */\r\n\t@Test\r\n\tpublic void getRequest() throws IOException {\r\n\r\n\t\tGetRequest request = new GetRequest(\"first_index\", \"11\");\r\n\r\n\t\tGetResponse getResponse = client.get(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(JSONObject.toJSON(getResponse));\r\n\t}\r\n\r\n\t/**\r\n\t * 判断是否存在,这个和get差不多，只不过更轻\r\n\t */\r\n\t@Test\r\n\tpublic void judgeExist() {\r\n\r\n\t\tGetRequest getRequest = new GetRequest(\"posts\", \"1\");\r\n\t\tgetRequest.fetchSourceContext(new FetchSourceContext(false));\r\n\t\tgetRequest.storedFields(\"_none_\");\r\n\t}\r\n\r\n\t/***\r\n\t * 删除API\r\n\t * \r\n\t * @throws IOException\r\n\t */\r\n\t@Test\r\n\tpublic void delete() throws IOException {\r\n\r\n\t\tDeleteRequest request = new DeleteRequest(\"first_index\", \"4\");\r\n\t\tDeleteResponse deleteResponse = client.delete(request, RequestOptions.DEFAULT);\r\n\r\n\t\tSystem.out.println(JSONObject.toJSON(deleteResponse));\r\n\t}\r\n\r\n\t/***\r\n\t * 更新 ,有几个形式，直接传JSON或者传Map,或者写script\r\n\t * \r\n\t * @throws IOException\r\n\t */\r\n\t@Test\r\n\tpublic void update() throws IOException {\r\n\r\n\t\tMap<String, Object> map = new HashMap<String, Object>();\r\n\t\tmap.put(\"age\", 100000);\r\n\t\tUpdateRequest request = new UpdateRequest(\"first_index\", \"6\").doc(map);\r\n\t\tclient.update(request, RequestOptions.DEFAULT);\r\n\r\n\t}\r\n\r\n\t/***\r\n\t * 更新某个字段\r\n\t * \r\n\t * @throws IOException\r\n\t */\r\n\t@Test\r\n\tpublic void updateFieldMap() throws IOException {\r\n\r\n\t\tUpdateRequest request = new UpdateRequest(\"accesslog\", \"zy-OiWwB_oPNGbRdACue\");\r\n\t\tMap<String, Object> map = new HashMap<String, Object>();\r\n\t\tmap.put(\"face.age\", 100);\r\n\t\trequest.doc(map);\r\n\t\tSystem.out.println(JSONObject.toJSON(client.update(request, RequestOptions.DEFAULT)));\r\n//\t\t\r\n//\t\tUpdateByQueryRequestBuilder builder = new UpdateByQueryRequestBuilder();\r\n//\t\t\r\n////\t\tUpdateRequest request = new UpdateRequest(\"accesslog\",\"yy-NiWwB_oPNGbRd_yub\").doc(map);\r\n//\t\tclient.update(request, RequestOptions.DEFAULT);\r\n\r\n\t}\r\n\r\n\t/***\r\n\t * 更新某个字段通过JSON,通过这种方式进行局部更新\r\n\t * \r\n\t * @throws IOException\r\n\t */\r\n\t@Test\r\n\tpublic void updateFieldJson() throws IOException {\r\n\r\n\t\tUpdateRequest request = new UpdateRequest(\"accesslog\", \"zy-OiWwB_oPNGbRdACue\");\r\n\r\n\t\tJSONObject faceJsonObject = new JSONObject();\r\n\t\tfaceJsonObject.put(\"feature\", \"frank\");\r\n\r\n\t\tJSONObject jsonObject = new JSONObject();\r\n\t\tjsonObject.put(\"face\", faceJsonObject);\r\n\t\trequest.doc(jsonObject, XContentType.JSON);\r\n\t\tSystem.out.println(JSONObject.toJSON(client.update(request, RequestOptions.DEFAULT)));\r\n//\t\t\r\n//\t\tUpdateByQueryRequestBuilder builder = new UpdateByQueryRequestBuilder();\r\n//\t\t\r\n////\t\tUpdateRequest request = new UpdateRequest(\"accesslog\",\"yy-NiWwB_oPNGbRd_yub\").doc(map);\r\n//\t\tclient.update(request, RequestOptions.DEFAULT);\r\n\r\n\t}\r\n\r\n\t@Test\r\n\tpublic void bulkIndex() throws IOException {\r\n\r\n\t\tBulkRequest request = new BulkRequest();\r\n\t\trequest.add(new IndexRequest(\"first_index\").id(\"1\").source(XContentType.JSON, \"field\", \"foo\"));\r\n\t\trequest.add(new IndexRequest(\"first_index\").id(\"2\").source(XContentType.JSON, \"field\", \"bar\"));\r\n\t\trequest.add(new IndexRequest(\"first_index\").id(\"3\").source(XContentType.JSON, \"field\", \"baz\"));\r\n\r\n\t\tBulkResponse bulkResponse = client.bulk(request, RequestOptions.DEFAULT);\r\n\r\n\t\t// 这个地方封装挺牛逼的，实现了iteratable接口，就直接可以在for循环里\r\n\t\tfor (BulkItemResponse bulkItemResponse : bulkResponse) {\r\n\t\t\tDocWriteResponse itemResponse = bulkItemResponse.getResponse();\r\n\r\n\t\t\tswitch (bulkItemResponse.getOpType()) {\r\n\t\t\tcase INDEX:\r\n\t\t\tcase CREATE:\r\n\t\t\t\tIndexResponse indexResponse = (IndexResponse) itemResponse;\r\n\t\t\t\tbreak;\r\n\t\t\tcase UPDATE:\r\n\t\t\t\tUpdateResponse updateResponse = (UpdateResponse) itemResponse;\r\n\t\t\t\tbreak;\r\n\t\t\tcase DELETE:\r\n\t\t\t\tDeleteResponse deleteResponse = (DeleteResponse) itemResponse;\r\n\t\t\t}\r\n\t\t}\r\n\t}\r\n\r\n\t@Test\r\n\tpublic void bulkGet() throws IOException {\r\n\r\n\t\tMultiGetRequest request = new MultiGetRequest();\r\n\t\trequest.add(new MultiGetRequest.Item(\"first_index\", \"1\"));\r\n\t\trequest.add(new MultiGetRequest.Item(\"first_index\", \"2\"));\r\n\r\n\t\tSystem.out.println(JSONObject.toJSON(client.multiGet(request, RequestOptions.DEFAULT)));\r\n\t}\r\n\r\n\t@Test\r\n\tpublic void searchBasic() throws IOException {\r\n\r\n\t\tSearchSourceBuilder searchsourceBuilder = new SearchSourceBuilder();\r\n\t\tsearchsourceBuilder.query(QueryBuilders.matchAllQuery());\r\n\r\n\t\tSearchRequest request = new SearchRequest(\"first_index\");\r\n\t\trequest.source(searchsourceBuilder);\r\n\r\n\t\tSystem.out.println(JSONObject.toJSON(client.search(request, RequestOptions.DEFAULT)));\r\n\r\n\t}\r\n\r\n\t@Test\r\n\tpublic void searchCondition() throws IOException {\r\n\r\n\t\tSearchSourceBuilder sourceBuilder = new SearchSourceBuilder();\r\n\t\tsourceBuilder.query(QueryBuilders.termQuery(\"money\", \"1000\"));\r\n\t\tsourceBuilder.from(0);\r\n\t\tsourceBuilder.size(5);\r\n\t\tsourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));\r\n\r\n\t\tSearchRequest request = new SearchRequest(\"first_index\");\r\n\t\trequest.source(sourceBuilder);\r\n\r\n\t\tSystem.out.println(JSONObject.toJSON(client.search(request, RequestOptions.DEFAULT)));\r\n\r\n\t}\r\n\r\n\t@Test\r\n\tpublic void searchConbination() throws IOException {\r\n\t\tSearchSourceBuilder sourceBuilder = new SearchSourceBuilder();\r\n\t\tsourceBuilder.query(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(\"age\", 34))).from(0).size(3);\r\n\r\n\t\tSearchRequest request = new SearchRequest(\"accesslog\");\r\n\t\trequest.source(sourceBuilder);\r\n\r\n//\t\tQueryBuilders.rangeQuery(\"\").gt(\"\").\r\n\r\n\t\tSystem.out.println(JSONObject.toJSON(client.search(request, RequestOptions.DEFAULT)));\r\n\t}\r\n\r\n\t@Test\r\n\tpublic void countAPI() throws IOException {\r\n\r\n\t\tCountRequest request = new CountRequest(\"accesslog\");\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t\tsearchsourceBuider.query(QueryBuilders.matchAllQuery());\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\t}\r\n\r\n\t@Test\r\n\tpublic void countConditionAPI() throws IOException {\r\n\r\n\t\tCountRequest request = new CountRequest(\"accesslog\");\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t\tsearchsourceBuider.query(QueryBuilders.termQuery(\"face.age\", 64));\r\n\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\t}\r\n\r\n\t@Test\r\n\tpublic void countCombinationAPI() throws IOException {\r\n\r\n\t\tCountRequest request = new CountRequest(\"accesslog\");\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t\tsearchsourceBuider.query(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(\"face.age\", 34))\r\n\t\t\t\t.filter(QueryBuilders.termQuery(\"face.gender\", 1)));\r\n\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\t}\r\n\r\n\t@Test\r\n\tpublic void fullTextSearch() throws IOException {\r\n\r\n\t\tSearchRequest request = new SearchRequest(\"accesslog\");\r\n\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t}\r\n\r\n\t@Test\r\n\tpublic void rangeSearch() throws IOException {\r\n\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n//\t\tsearchsourceBuider.query(QueryBuilders.rangeQuery(\"dateTime\").gt(\"2019-08-12 16:29:14\").lt(\"2019-08-12 16:29:33\"));\r\n\r\n\t\tsearchsourceBuider.query(QueryBuilders.rangeQuery(\"face.confidence\").gt(97.4f));\r\n\r\n//\t\tsearchsourceBuider.query(QueryBuilders.rangeQuery(\"dateTime\").gt(DateHelper.strToDateLong(\"2019-08-12 16:29:14\"))\r\n//\t\t\t\t.lt(DateHelper.strToDateLong(\"2019-08-12 16:29:33\")));\r\n\r\n\t\tCountRequest request = new CountRequest(\"accesslog\");\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\t}\r\n\r\n\t@Test\r\n\tpublic void rangeSearchDateTime() throws IOException {\r\n\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t\tsearchsourceBuider\r\n\t\t\t\t.query(QueryBuilders.rangeQuery(\"dateTime\").gt(\"2019-08-12 17:57:27\").lt(\"2019-08-12 17:57:32\"));\r\n\r\n//\t\tsearchsourceBuider.query(QueryBuilders.rangeQuery(\"dateTime\").gt(DateHelper.strToDateLong(\"2019-08-12 16:29:14\"))\r\n//\t\t\t\t.lt(DateHelper.strToDateLong(\"2019-08-12 16:29:33\")));\r\n\r\n\t\tCountRequest request = new CountRequest(\"accesslog\");\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\t}\r\n\r\n\t/** 特征精确查找 */\r\n\t@Test\r\n\tpublic void AccurateSearch() throws IOException {\r\n\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n//\t\tsearchsourceBuider.query(QueryBuilders.termQuery(\"face.feature\", \"HgAHDA36AQAACR7qAf/6/A4DDwoCEPzt/f78B/wCCf378gAACQId+fr0BAf+7QP2AwAM+wQS+e4GCAgGBfsF9vwC7QghCQAi/u8Y9v79HgwN5fAAB/UL/BkHBRYA7g3o5goJDPkQ9iD/AP/6AfsA/PYBEfr8AxDzBQDwCPYA+hv2HPHwC/X1CPfy/gII9RQM8/AB9woNB/32BPsABxQG9u4AEgXrAwgJCAoUCA3+CggUAfD8/PIC+xL27fYPAQwF9+cX/vf8AwYNB/4TBQb2/wwO9hQE8Q0XBPgRABr78wAADBMACf/tCuT7EvcT+g0OBPgABvwI4AAHAPT3APsD7xH+/vH++AP6/Q34/QsABRXy6fcBBeQCBAAHBAYGBPH17wkCDP8G6+YAAP3j+/31AfoHFP3xB/oC9gX6ABDu+vkUBgz0BO3x//z16AsADe4DFiMvEwIF8v8L7fcTAf0PFAH64Q0J/hLt/u8K5wAH+wcADxPy/hLxBwj4+Q4BFvEYkgJ5Q9WXgzs=\"));\r\n\r\n\t\tsearchsourceBuider.query(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(\"face.feature.keyword\",\r\n\t\t\t\t\"9/4T6QAa+/r2//wA5Pbx/wkAB/D5Cv335vv4EO7/Bgr98v0IBwAD9QEE8Qka8A/+CgoN+vn27wjwAAzx8vYQA/IV8/b6CvH2Bw4fBOn9AgD6Bwv7Ae/38wEF7wIAGwEG/PsDCvf+BwPmA+UICg0AAPD3Bwz27QcJB/cCEBwM+eQK+/gHBeX9AQAd5+0E+QgaA/wA+xUJ//8QA/kH9P0C/xEHGw/yFQMBFA4AAxcB+f8F/yD3CwQIABLx/BYF5xgB/AH5EPvr/f4Q+BEG8wD0E+sF/AL/4/4GAPsT9vkC/QoC9OcB7vn5+AkQEgLw7AUb6hEADQ4OCxAF/wIQGAX/Cvb87v748gT5AwAREggJDvEL/RHz/PkZAgHj/wQACuoL9f75+QwM9wEK+Rru9hEI+wHyA/b1+QjvDfoUA+8R8ekIA/f0BAf4DfUCAAIM8RMF8iT8A/kB6A0E7u8PCgr79uoE+fgM6/gNEAoD+ewR/Qjp8wMN6Oz27wsBAf74FgQTQlp4QwPxgzs=\")));\r\n\r\n\t\tCountRequest request = new CountRequest(\"accesslog\");\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\t}\r\n\r\n\t/** 时间精确查找 */\r\n\t@Test\r\n\tpublic void TimeSearch() throws IOException {\r\n\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t\tsearchsourceBuider\r\n\t\t\t\t.query(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(\"dateTime\", \"2019-08-12 17:48:11\")));\r\n\r\n\t\tCountRequest request = new CountRequest(\"accesslog\");\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\t}\r\n\r\n\t/**\r\n\t * 全文检索\r\n\t * \r\n\t * @throws IOException\r\n\t */\r\n\t@Test\r\n\tpublic void fullTextQuery() throws IOException {\r\n\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t\tsearchsourceBuider.query(QueryBuilders.matchQuery(\"message\", \"Elasticsearch out\"));\r\n\r\n\t\tCountRequest request = new CountRequest(\"twitter\");\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tQueryBuilders.matchPhraseQuery(\"message\", \"trying out\");\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\t}\r\n\r\n\t/**\r\n\t * 词项查找\r\n\t * \r\n\t * @throws IOException\r\n\t */\r\n\t@Test\r\n\tpublic void multitextQuery() throws IOException {\r\n\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t\tsearchsourceBuider.query(QueryBuilders.matchPhraseQuery(\"message\", \"王建\"));\r\n\r\n\t\tCountRequest request = new CountRequest(\"twitter\");\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\t}\r\n\r\n\t/**\r\n\t * 前缀查找\r\n\t * \r\n\t * @throws IOException\r\n\t */\r\n\t@Test\r\n\tpublic void prefixQuery() throws IOException {\r\n\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t\tsearchsourceBuider.query(QueryBuilders.prefixQuery(\"message\", \"el\"));\r\n\r\n\t\tCountRequest request = new CountRequest(\"twitter\");\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\t}\r\n\r\n\t/**\r\n\t * 模糊搜索\r\n\t * \r\n\t * @throws IOException\r\n\t */\r\n\t@Test\r\n\tpublic void fuzzyTextQuery() throws IOException {\r\n\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t\tsearchsourceBuider.query(QueryBuilders.fuzzyQuery(\"face.feature\", \"dayacj1fgyfbp4q9pusb\"));\r\n\r\n\t\tSearchRequest request = new SearchRequest(\"accesslog\");\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tSearchResponse searchResponse = client.search(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + JSONObject.toJSONString(searchResponse));\r\n\t}\r\n\r\n\t/**\r\n\t * 通配符\r\n\t * \r\n\t * @throws IOException\r\n\t */\r\n\t@Test\r\n\tpublic void wildcardQuery() throws IOException {\r\n\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t\tsearchsourceBuider.query(QueryBuilders.wildcardQuery(\"face.feature\", \"*CAH6CBIJ+wH8DP8H8RIICyAF*\"));\r\n\r\n\t\tCountRequest request = new CountRequest(\"accesslog\");\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\t}\r\n\r\n\t/**\r\n\t * 组合搜索，结构化搜索和全文检索在一个条件中\r\n\t * \r\n\t * @throws IOException\r\n\t */\r\n\t@Test\r\n\tpublic void comboundSearch() throws IOException {\r\n\r\n\t\tSearchSourceBuilder searchsourceBuider = new SearchSourceBuilder();\r\n\t\tsearchsourceBuider.query(QueryBuilders.boolQuery().must(QueryBuilders.matchQuery(\"message\", \"李\"))\r\n\t\t\t\t.must(QueryBuilders.termQuery(\"age\", 18)));\r\n\r\n\t\tCountRequest request = new CountRequest(\"twitter\");\r\n\t\trequest.source(searchsourceBuider);\r\n\r\n\t\tCountResponse countResponse = client.count(request, RequestOptions.DEFAULT);\r\n\t\tSystem.out.println(\"--------- response----\" + countResponse.getCount());\r\n\r\n\t}\r\n\r\n\t/**\r\n\t * 简单聚合,女性的平均年龄\r\n\t * \r\n\t * @throws IOException\r\n\t */\r\n\t@Test\r\n\tpublic void easyAgregation() throws IOException {\r\n\r\n\t\tSearchRequest searchRequest = new SearchRequest(\"twitter\");\r\n\r\n\t\tSearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();\r\n\r\n\t\t// 取名字，以及定义哪个字段\r\n\t\tTermsAggregationBuilder aggregation = AggregationBuilders.terms(\"by_sex\").field(\"sex\"); // text类型不能用于索引或排序，必须转成keyword类型\r\n\r\n\t\t// 设置了一个嵌套查询，应该是先根据性别进行分桶，在性别分桶的基础上再进行年龄的聚合\r\n\t\taggregation.subAggregation(AggregationBuilders.avg(\"avg_age\").field(\"age\")); // avg_age 为子聚合名称，名称可随意\r\n\r\n\t\tsearchSourceBuilder.aggregation(aggregation);\r\n\t\tsearchRequest.source(searchSourceBuilder);\r\n\t\tSearchResponse searchResponse = null;\r\n\t\ttry {\r\n\t\t\tsearchResponse = client.search(searchRequest, RequestOptions.DEFAULT);\r\n\t\t} catch (IOException e) {\r\n\t\t\te.printStackTrace();\r\n\t\t}\r\n\t\tAggregations aggregations = searchResponse.getAggregations();\r\n\r\n\t\tTerms bySexAggregation = aggregations.get(\"by_sex\");\r\n\r\n\t\tTerms.Bucket elasticBucket = bySexAggregation.getBucketByKey(\"1\");\r\n\r\n\t\tAvg averageAge = elasticBucket.getAggregations().get(\"avg_age\");\r\n\r\n\t\tdouble avg = averageAge.getValue();\r\n\r\n\t\tSystem.out.println(\"女性平均年龄：\" + avg);\r\n\t}\r\n\r\n\t/**\r\n\t * 统计最大值、最小值等\r\n\t */\r\n\t@Test\r\n\tpublic void statistics() {\r\n\t\tlogger.info(\"测试git 添加\");\r\n\r\n\t\tSearchRequest searchRequest = new SearchRequest();\r\n\t\tSearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();\r\n\t\t\r\n\t\tTermsAggregationBuilder aggregation = AggregationBuilders.terms(\"by_sex\").field(\"sex\"); // by_sex为聚合名称，名称可随意\r\n\t\t\r\n\t\taggregation.subAggregation(AggregationBuilders.stats(\"stat_age\").field(\"age\")); // avg_age 为子聚合名称，名称可随意\r\n\t\t\r\n\t\tsearchSourceBuilder.aggregation(aggregation);\r\n\t\tsearchRequest.source(searchSourceBuilder);\r\n\t\tSearchResponse searchResponse = null;\r\n\t\t\r\n\t\ttry {\r\n\t\t\tsearchResponse = client.search(searchRequest, RequestOptions.DEFAULT);\r\n\t\t} catch (IOException e) {\r\n\t\t\te.printStackTrace();\r\n\t\t}\r\n\t\tAggregations aggregations = searchResponse.getAggregations();\r\n\t\tTerms bySexAggregation = aggregations.get(\"by_sex\");\r\n\t\tList<? extends Terms.Bucket> buckets = bySexAggregation.getBuckets();\r\n\t\tfor (Terms.Bucket bucket : buckets) {\r\n\t\t\tStats statAge = bucket.getAggregations().get(\"stat_age\");\r\n\t\t\tSystem.out.println(bucket.getKey()); // 获取分组名称\r\n\t\t\tSystem.out.println(\"平均值：\" + statAge.getAvg());\r\n\t\t\tSystem.out.println(\"总数：\" + statAge.getSum());\r\n\t\t\tSystem.out.println(\"最大值：\" + statAge.getMaxAsString());\r\n\t\t\tSystem.out.println(\"最小值：\" + statAge.getMin());\r\n\t\t}\r\n\r\n\t}\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+diff --git a/src/main/java/test/EsTest.java b/src/main/java/test/EsTest.java
+--- a/src/main/java/test/EsTest.java	(revision bf06c0e7601ec18bffb5d601a18363b54d7741d8)
++++ b/src/main/java/test/EsTest.java	(date 1661755286982)
+@@ -581,6 +581,8 @@
+ 	public void statistics() {
+ 		logger.info("测试git 添加");
+ 
++		logger.info("测试git merge添加");
++
+ 		SearchRequest searchRequest = new SearchRequest();
+ 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+ 		
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+new file mode 100644
+--- /dev/null	(date 1661753303920)
++++ b/.idea/compiler.xml	(date 1661753303920)
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="CompilerConfiguration">
++    <option name="BUILD_PROCESS_HEAP_SIZE" value="4048" />
++    <annotationProcessing>
++      <profile name="Maven default annotation processors profile" enabled="true">
++        <sourceOutputDir name="target/generated-sources/annotations" />
++        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
++        <outputRelativeToContentRoot value="true" />
++        <module name="EsTest" />
++      </profile>
++    </annotationProcessing>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/.gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/.gitignore b/.idea/.gitignore
+new file mode 100644
+--- /dev/null	(date 1661753158999)
++++ b/.idea/.gitignore	(date 1661753158999)
+@@ -0,0 +1,8 @@
++# Default ignored files
++/shelf/
++/workspace.xml
++# Editor-based HTTP Client requests
++/httpRequests/
++# Datasource local storage ignored files
++/dataSources/
++/dataSources.local.xml
+Index: .idea/jarRepositories.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/jarRepositories.xml b/.idea/jarRepositories.xml
+new file mode 100644
+--- /dev/null	(date 1661753303979)
++++ b/.idea/jarRepositories.xml	(date 1661753303979)
+@@ -0,0 +1,40 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="RemoteRepositoriesConfiguration">
++    <remote-repository>
++      <option name="id" value="central" />
++      <option name="name" value="Central Repository" />
++      <option name="url" value="http://maven.aliyun.com/nexus/content/groups/public/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="nexus-snapshots" />
++      <option name="name" value="nexus-snapshots" />
++      <option name="url" value="http://nexus.lepass.cn/nexus/content/repositories/snapshots/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="nexus-thirdparty" />
++      <option name="name" value="nexus-thirdparty" />
++      <option name="url" value="http://nexus.lepass.cn/nexus/content/repositories/thirdparty/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="central" />
++      <option name="name" value="Maven Central repository" />
++      <option name="url" value="https://repo1.maven.org/maven2" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="jboss.community" />
++      <option name="name" value="JBoss Community repository" />
++      <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="nexus-central" />
++      <option name="name" value="nexus-central" />
++      <option name="url" value="http://nexus.lepass.cn/nexus/content/groups/public/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="nexus-releases" />
++      <option name="name" value="nexus-releases" />
++      <option name="url" value="http://nexus.lepass.cn/nexus/content/repositories/releases/" />
++    </remote-repository>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+new file mode 100644
+--- /dev/null	(date 1661753303967)
++++ b/.idea/vcs.xml	(date 1661753303967)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/encodings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/encodings.xml b/.idea/encodings.xml
+new file mode 100644
+--- /dev/null	(date 1661753303951)
++++ b/.idea/encodings.xml	(date 1661753303951)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="Encoding">
++    <file url="file://$PROJECT_DIR$/src/main/java/test/EsTest.java" charset="GBK" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+new file mode 100644
+--- /dev/null	(date 1661753303936)
++++ b/.idea/misc.xml	(date 1661753303936)
+@@ -0,0 +1,12 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ExternalStorageConfigurationManager" enabled="true" />
++  <component name="MavenProjectsManager">
++    <option name="originalFiles">
++      <list>
++        <option value="$PROJECT_DIR$/pom.xml" />
++      </list>
++    </option>
++  </component>
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
++</project>
+\ No newline at end of file
