@@ -608,6 +608,7 @@ public class EsTest {
 			System.out.println("最大值：" + statAge.getMaxAsString());
 			System.out.println("最小值：" + statAge.getMin());
 		}
+		logger.info("B++++1");
 
 	}
 
